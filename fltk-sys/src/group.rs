@@ -4476,6 +4476,27 @@ extern "C" {
     pub fn Fl_Terminal_set_scrollbar_size(self_: *mut Fl_Terminal, set: ::std::os::raw::c_int);
 }
 extern "C" {
+    pub fn Fl_Terminal_hscrollbar_actual_size(self_: *const Fl_Terminal) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn Fl_Terminal_hscrollbar_size(self_: *const Fl_Terminal) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn Fl_Terminal_set_hscrollbar_size(self_: *mut Fl_Terminal, set: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn Fl_Terminal_hscroll_col(self_: *const Fl_Terminal) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn Fl_Terminal_set_hscroll_col(self_: *mut Fl_Terminal, set: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn Fl_Terminal_hscrollbar_style(self_: *const Fl_Terminal) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn Fl_Terminal_set_hscrollbar_style(self_: *mut Fl_Terminal, set: ::std::os::raw::c_int);
+}
+extern "C" {
     pub fn Fl_Terminal_selection_bg_color(self_: *const Fl_Terminal) -> ::std::os::raw::c_uint;
 }
 extern "C" {

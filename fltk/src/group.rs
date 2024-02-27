@@ -1344,6 +1344,32 @@ pub mod experimental {
         }
     }
 
+    ///    Controls behavior of horizontal scrollbar
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+    pub struct HScrollbarStyle {
+        bits: i32,
+    }
+    impl HScrollbarStyle {
+        /// Scrollbar is always invisible
+        pub const OFF: HScrollbarStyle = HScrollbarStyle {bits: 0};
+        /// scrollbar is visible if widget has been resized in a way that hides some columns (default)
+        pub const AUTO: HScrollbarStyle = HScrollbarStyle{bits: 1};
+        /// Scrollbar is always visible
+        pub const ON: HScrollbarStyle = HScrollbarStyle{bits: 2};
+
+        /// Gets the inner representation
+        pub const fn bits(&self) -> i32 {
+            self.bits
+        }
+        /// Build a HScrollbarStyle with an arbitrary value.
+        pub const fn new(val: i32) -> Self {
+            HScrollbarStyle { bits: val }
+        }
+
+    }
+
+
+
     ///    Class to manage the terminal's individual UTF-8 characters.
     ///    Includes fg/bg color, attributes (BOLD, UNDERLINE..)
     /// *This is a low-level "protected" class in the fltk library*
@@ -1892,23 +1918,86 @@ pub mod experimental {
             unsafe { Fl_Terminal_reset_terminal(self.inner.widget() as _) }
         }
 
-        /// Returns the scrollbar's actual size; actual width for vertical scrollbars, actual height for horizontal scrollbars.
+        /// Returns the vertical scrollbar's actual width.
         pub fn scrollbar_actual_size(&self) -> i32 {
             unsafe { Fl_Terminal_scrollbar_actual_size(self.inner.widget() as _) }
         }
 
-        /// Get the current size of the scrollbar's trough, in pixels.
+        /// Get the current width of the vertical scrollbar's trough, in pixels.
         /// If this value is zero (default), this widget is using fltk's
         /// master scrollbar_size() value
         pub fn scrollbar_size(&self) -> i32 {
             unsafe { Fl_Terminal_scrollbar_size(self.inner.widget() as _) }
         }
 
-        /// Set the width of the scrollbar's trough to val, in pixels.
+        /// Set the width of the vertical scrollbar's trough to val, in pixels.
         /// If this value is zero (default), this widget will use fltk's
         /// master scrollbar_size() value
         pub fn set_scrollbar_size(&mut self, val: i32) {
             unsafe { Fl_Terminal_set_scrollbar_size(self.inner.widget() as _, val) }
+        }
+
+        /// Returns the horizontal scrollbar's actual height.
+        pub fn hscrollbar_actual_size(&self) -> i32 {
+            unsafe { Fl_Terminal_hscrollbar_actual_size(self.inner.widget() as _) }
+        }
+
+        /// Get the current height of the horizontal scrollbar's trough, in pixels.
+        /// If this value is zero (default), this widget is using fltk's
+        /// master scrollbar_size() value
+        pub fn hscrollbar_size(&self) -> i32 {
+            unsafe { Fl_Terminal_hscrollbar_size(self.inner.widget() as _) }
+        }
+
+        /// Set the height of the horizontal scrollbar's trough to val, in pixels.
+        /// If this value is zero (default), this widget will use fltk's
+        /// master scrollbar_size() value
+        pub fn set_hscrollbar_size(&mut self, val: i32) {
+            unsafe { Fl_Terminal_set_hscrollbar_size(self.inner.widget() as _, val) }
+        }
+
+        /// Returns the horizontal scroll position in columns.
+        ///  The return value will usually be approximately the left side of the display,
+        ///  but horizontal scroll works in discrete steps so this will be imprecise.
+        ///  This will return a value that is near but not necessarily equal to the
+        ///  value set by `hscrollbar_col(col)`
+        pub fn hscroll_col(&self) -> i32 {
+            unsafe { Fl_Terminal_hscroll_col(self.inner.widget() as _) }
+        }
+
+        /// Set the horizontal scroll position, where `col` is the display column
+        ///  that must be on the display.
+        ///
+        /// `col` will not be guaranteed to be at the left edge of the display. The
+        ///  horizontal scroll works in discrete steps, so the column position is approxmate
+        ///  but the specified column will be on the screen.
+        ///  This function also will not scroll beyond the right edge of the display.
+        pub fn set_hscroll_col(&mut self, val: i32) {
+            unsafe { Fl_Terminal_set_hscroll_col(self.inner.widget() as _, val) }
+        }
+
+        /// Get the horizontal scrollbar behavior style.
+        ///
+        ///  This determines when the scrollbar is visible.
+        ///
+        /// Value will be one of the Fl_Terminal::HScrollbarStyle enum values.
+        pub fn hscrollbar_style(&self) -> HScrollbarStyle {
+            unsafe { HScrollbarStyle::new(Fl_Terminal_hscrollbar_style(self.inner.widget() as _)) }
+        }
+
+        ///   Set the horizontal scrollbar behavior style.
+        ///
+        ///  This determines when the scrollbar is visible.
+        ///
+        ///  |   HScrollbarStyle enum    | Description                                           |
+        ///  |---------------------------|-------------------------------------------------------|
+        ///  |   ON                      | Horizontal scrollbar is always displayed.             |
+        ///  |   OFF                     | Horizontal scrollbar is never displayed.              |
+        ///  |   AUTO                    | Horizontal scrollbar is displayed whenever the widget width has been resized so that some of the columns are hidden. |
+        ///
+        ///  The default style is HS_AUTO
+        pub fn set_hscrollbar_style(&mut self, val: HScrollbarStyle) {
+            unsafe { Fl_Terminal_set_hscrollbar_style(self.inner.widget() as _, val.bits()) }
         }
 
         /// Get mouse selection background color.
@@ -1996,14 +2085,20 @@ pub mod experimental {
         ///  Set the text color for the terminal.
         ///  This is a convenience method that sets *both* textfgcolor() and textfgcolor_default(),
         ///  ensuring both are set to the same value.
+        ///
+        ///  Colors set this way will NOT be influenced by the xterm Dim/Bold color intensity
+        /// attributes.  For that, use set_text_fgcolor_xterm(uchar) instead.
         pub fn set_text_color(&mut self, color: Color) {
             unsafe { Fl_Terminal_set_text_color(self.inner.widget() as _, color.bits()) }
         }
         /// Set text foreground drawing color to fltk color val.
         /// Use this for temporary color changes, similar to \<ESC\>[38;2;{R};{G};{B}m
         ///
+        /// Colors set this way will NOT be influenced by the xterm Dim/Bold color intensity
+        /// attributes.  For that, use set_text_fg_color_xterm(u8) instead.
+        ///
         /// This setting does not affect the 'default' text colors used by \<ESC\>[0m, \<ESC\>c, reset_terminal(), etc.
-        /// To change both the current and default fg color, also use textfgcolor_default(Fl_Color)
+        /// To change both the current and default fg color, also use set_text_fg_color_default(Fl_Color)
         pub fn set_text_fg_color(&mut self, color: Color) {
             unsafe { Fl_Terminal_set_text_fg_color(self.inner.widget() as _, color.bits()) }
         }
